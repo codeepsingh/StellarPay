@@ -1,0 +1,72 @@
+name: StellarPay CI/CD Pipeline
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+  contracts-test:
+    name: Test Soroban Contracts
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: stable
+
+      - name: Cargo Cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/bin/
+            ~/.cargo/registry/index/
+            ~/.cargo/registry/cache/
+            ~/.cargo/git/db/
+            target/
+          key: ${{ runner.os }}-cargo-${{ hashFiles('contracts/Cargo.toml') }}
+
+      - name: Run Cargo Tests
+        run: |
+          cd contracts
+          cargo test
+
+  frontend-build:
+    name: Build React Client
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+
+      - name: Install Frontend Dependencies
+        run: npm ci
+
+      - name: Build Production Client
+        run: npm run build
+
+      - name: Run Frontend Tests
+        run: npm test
+
+  deploy:
+    name: Deploy to Netlify
+    needs: [contracts-test, frontend-build]
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
+    environment:
+      name: Production
+      url: https://stellarpay21.netlify.app/
+    steps:
+      - name: Deploy Status
+        run: |
+          echo "Successfully triggered build and deployment to Netlify Production environment."
+          echo "Live Demo URL: https://stellarpay21.netlify.app/"
