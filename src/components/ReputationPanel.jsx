@@ -12,6 +12,8 @@ const ReputationPanel = ({ wallet }) => {
   const [searchResult, setSearchResult] = useState(null);
   const [loading, setLoading] = useState(true);
   const [searching, setSearching] = useState(false);
+  const [isOnChainRegistered, setIsOnChainRegistered] = useState(false);
+  const [registering, setRegistering] = useState(false);
 
   useEffect(() => {
     loadData();
@@ -21,6 +23,15 @@ const ReputationPanel = ({ wallet }) => {
     if (!address) return;
     setLoading(true);
     try {
+      // Check if registered on-chain
+      try {
+        const { queryContractMethod, nativeToScVal } = await import('../services/stellarService');
+        const onChainProf = await queryContractMethod('get_profile', [nativeToScVal(address, { type: 'address' })]);
+        setIsOnChainRegistered(!!onChainProf);
+      } catch (e) {
+        console.warn('On-chain check failed:', e);
+      }
+
       // Load user profile
       const prof = await apiService.getUserProfile(address);
       setProfile(prof);
@@ -33,6 +44,26 @@ const ReputationPanel = ({ wallet }) => {
       toast.error('Failed to load reputation details');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleRegisterOnChain = async () => {
+    setRegistering(true);
+    try {
+      const { invokeContractMethod, nativeToScVal } = await import('../services/stellarService');
+      await invokeContractMethod(
+        address,
+        'create_profile',
+        [nativeToScVal(address, { type: 'address' })]
+      );
+      toast.success('Profile successfully initialized on-chain!');
+      setIsOnChainRegistered(true);
+      await loadData();
+    } catch (error) {
+      console.error(error);
+      toast.error(error.message || 'Registration failed');
+    } finally {
+      setRegistering(false);
     }
   };
 
@@ -74,6 +105,27 @@ const ReputationPanel = ({ wallet }) => {
   return (
     <div className="space-y-6">
       
+      {!isOnChainRegistered && (
+        <div className="p-4 rounded-3xl border border-amber-500/20 bg-amber-500/5 text-amber-800 dark:text-amber-400/90 text-xs flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 animate-pulse">
+          <div className="space-y-0.5">
+            <p className="font-extrabold flex items-center gap-1 text-amber-600 dark:text-amber-400">
+              <AlertTriangle className="w-4 h-4" />
+              On-Chain Profile Not Registered
+            </p>
+            <p className="text-slate-500 dark:text-zinc-400">
+              You must register your profile on-chain to start logging completed contract volume and reputation points.
+            </p>
+          </div>
+          <button
+            onClick={handleRegisterOnChain}
+            disabled={registering}
+            className="px-4 py-2 bg-amber-550 hover:bg-amber-600 dark:bg-amber-600 dark:hover:bg-amber-500 disabled:bg-amber-400 text-white font-bold rounded-xl transition-all shadow-md active:scale-95 cursor-pointer shrink-0"
+          >
+            {registering ? 'Registering...' : 'Register Profile'}
+          </button>
+        </div>
+      )}
+
       {/* 1. Main Stats Section */}
       {profile && (
         <div className="p-6 rounded-3xl border border-slate-200/80 dark:border-zinc-800 bg-white dark:bg-zinc-900 shadow-md space-y-6">
