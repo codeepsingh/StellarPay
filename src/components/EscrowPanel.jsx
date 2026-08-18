@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { ShieldCheck, Plus, ArrowRight, CheckCircle2, XCircle, AlertTriangle, RefreshCw, ExternalLink, HelpCircle, AlertCircle, Landmark } from 'lucide-react';
 import { apiService } from '../services/apiService';
-import { sendPayment } from '../services/stellarService';
+import { invokeContractMethod, queryContractMethod, CONTRACT_ADDRESS, XLM_TOKEN_ADDRESS } from '../services/stellarService';
+import { nativeToScVal } from 'stellar-sdk';
 import { toast } from 'react-hot-toast';
 import { shortenAddress } from '../utils/formatters';
 import { isValidStellarAddress, validateAmount } from '../utils/validators';
@@ -105,14 +106,23 @@ const EscrowPanel = ({ wallet }) => {
     
     // We execute a real on-chain transfer to lock the funds, or simulate contract call on-chain
     const action = async () => {
-      // First make a real Stellar payment to show real on-chain transaction lockup!
-      // In a Level 3 application, we lock funds. We send XLM to an escrow agent or self-lock on-chain.
-      // We send it to the Escrow contract's representation or recipient. To keep it safe, we send it to recipient
-      // or a secure admin account, or register a real lockup on testnet.
-      // For developer UX, we execute a payment to the recipient representing contract deposit.
-      const tx = await sendPayment(address, recipient.trim(), amount, `StellarPay Escrow Lockup`);
-      // Now register it in our backend indexer
-      return apiService.createEscrow(address, recipient.trim(), amount, tx.hash);
+      const escrowId = Math.floor(Date.now() / 1000); // 64-bit ID
+      const amountInStroops = Math.round(parseFloat(amount) * 10000000);
+      
+      const tx = await invokeContractMethod(
+        address,
+        'create_escrow',
+        [
+          nativeToScVal(address, { type: 'address' }),
+          nativeToScVal(recipient.trim(), { type: 'address' }),
+          nativeToScVal(amountInStroops, { type: 'i128' }),
+          nativeToScVal(XLM_TOKEN_ADDRESS, { type: 'address' }),
+          nativeToScVal(escrowId, { type: 'u64' })
+        ]
+      );
+      
+      // Register it in our backend indexer
+      return apiService.createEscrow(address, recipient.trim(), amount, tx.hash, escrowId);
     };
 
     try {
@@ -131,8 +141,15 @@ const EscrowPanel = ({ wallet }) => {
 
   const handleRelease = async (escrowId) => {
     try {
-      const action = apiService.releaseEscrow(escrowId);
-      await runTracker('Release Escrow Funds', action);
+      const action = async () => {
+        const tx = await invokeContractMethod(
+          address,
+          'release_funds',
+          [nativeToScVal(escrowId, { type: 'u64' })]
+        );
+        return apiService.releaseEscrow(escrowId);
+      };
+      await runTracker('Release Escrow Funds', action());
       toast.success('Funds released to recipient!');
       fetchEscrows();
       wallet.refreshBalance();
@@ -143,8 +160,15 @@ const EscrowPanel = ({ wallet }) => {
 
   const handleRefund = async (escrowId) => {
     try {
-      const action = apiService.refundEscrow(escrowId);
-      await runTracker('Refund Escrow Funds', action);
+      const action = async () => {
+        const tx = await invokeContractMethod(
+          address,
+          'refund_funds',
+          [nativeToScVal(escrowId, { type: 'u64' })]
+        );
+        return apiService.refundEscrow(escrowId);
+      };
+      await runTracker('Refund Escrow Funds', action());
       toast.success('Funds refunded to creator!');
       fetchEscrows();
       wallet.refreshBalance();
@@ -155,8 +179,15 @@ const EscrowPanel = ({ wallet }) => {
 
   const handleCancel = async (escrowId) => {
     try {
-      const action = apiService.cancelEscrow(escrowId);
-      await runTracker('Cancel Escrow & Refund', action);
+      const action = async () => {
+        const tx = await invokeContractMethod(
+          address,
+          'cancel_escrow',
+          [nativeToScVal(escrowId, { type: 'u64' })]
+        );
+        return apiService.cancelEscrow(escrowId);
+      };
+      await runTracker('Cancel Escrow & Refund', action());
       toast.success('Escrow cancelled. Funds returned.');
       fetchEscrows();
       wallet.refreshBalance();
@@ -174,8 +205,20 @@ const EscrowPanel = ({ wallet }) => {
     }
 
     try {
-      const action = apiService.openDispute(escrowId, reason);
-      await runTracker('Open Escrow Dispute', action);
+      const action = async () => {
+        const safeReason = reason.replace(/[^a-zA-Z0-9_]/g, '_').substring(0, 30) || 'dispute';
+        const tx = await invokeContractMethod(
+          address,
+          'open_dispute',
+          [
+            nativeToScVal(escrowId, { type: 'u64' }),
+            nativeToScVal(address, { type: 'address' }),
+            nativeToScVal(safeReason, { type: 'symbol' })
+          ]
+        );
+        return apiService.openDispute(escrowId, reason);
+      };
+      await runTracker('Open Escrow Dispute', action());
       toast.success('Dispute ticket successfully filed on-chain!');
       fetchEscrows();
     } catch (error) {
@@ -188,8 +231,19 @@ const EscrowPanel = ({ wallet }) => {
     if (!window.confirm(confirmMsg)) return;
 
     try {
-      const action = apiService.resolveDispute(escrowId, winner);
-      await runTracker('Resolve Dispute Concession', action);
+      const action = async () => {
+        const tx = await invokeContractMethod(
+          address,
+          'resolve_dispute',
+          [
+            nativeToScVal(escrowId, { type: 'u64' }),
+            nativeToScVal(winner, { type: 'address' }),
+            nativeToScVal(address, { type: 'address' })
+          ]
+        );
+        return apiService.resolveDispute(escrowId, winner);
+      };
+      await runTracker('Resolve Dispute Concession', action());
       toast.success('Dispute resolved and closed!');
       fetchEscrows();
       wallet.refreshBalance();

@@ -21,7 +21,7 @@ const WalletCard = ({ wallet }) => {
   };
 
   // Case 1: Freighter is not installed
-  if (!isInstalled && !isLoading) {
+  if (!isConnected && !isInstalled && !isLoading) {
     return (
       <div className="glass-panel p-6 rounded-2xl border border-red-200/40 dark:border-red-500/10 shadow-lg shadow-red-500/5 transition-all duration-300">
         <div className="flex flex-col items-center text-center space-y-4">
@@ -106,7 +106,7 @@ const WalletCard = ({ wallet }) => {
             <div>
               <p className="text-xs text-slate-400 dark:text-zinc-500">Wallet Account</p>
               <h4 className="text-sm font-bold text-slate-800 dark:text-zinc-100 flex items-center gap-1.5">
-                Freighter Wallet
+                {wallet.walletType === 'freighter' ? 'Freighter Wallet' : wallet.walletType === 'albedo' ? 'Albedo Wallet (Sandbox)' : 'xBull Wallet (Sandbox)'}
                 <span className="inline-flex w-1.5 h-1.5 rounded-full bg-emerald-500" />
               </h4>
             </div>
@@ -140,7 +140,9 @@ const WalletCard = ({ wallet }) => {
         {/* Info footer */}
         <div className="flex justify-between items-center text-xs text-slate-400 dark:text-zinc-500 font-semibold px-1">
           <span>Stellar Test Network</span>
-          <span className="text-indigo-600 dark:text-indigo-400">Freighter Active</span>
+          <span className="text-indigo-600 dark:text-indigo-400">
+            {wallet.walletType === 'freighter' ? 'Freighter' : wallet.walletType === 'albedo' ? 'Albedo' : 'xBull'} Connected
+          </span>
         </div>
       </div>
     </div>
