@@ -168,22 +168,18 @@ Transaction Completed
 
 # Smart Contracts
 
-## Contract Deployment Proof
+## Unified StellarPay Contract
 
-### Escrow Contract
+StellarPay uses a unified Soroban smart contract combining Escrow, Profile, and Reputation management into a single, cohesive, atomic on-chain state machine:
 
-* Contract ID: `CDMLNC5EUTGZDAPOJSKGYGGOVPOSUFMRUXIWUB4C3ERJZIQSMXMDDI6N`
-* Stellar Expert Testnet Link: [CDMLNC5EUTGZDAPOJSKGYGGOVPOSUFMRUXIWUB4C3ERJZIQSMXMDDI6N](https://stellar.expert/explorer/testnet/contract/CDMLNC5EUTGZDAPOJSKGYGGOVPOSUFMRUXIWUB4C3ERJZIQSMXMDDI6N)
+* **Contract ID**: `CASPRTNB2I7EHMEFXPVG5OIFNRRS6WF75HNAHWC54IMDZEP3P6JNS6GR`
+* **Stellar Expert Testnet Link**: [CASPRTNB2I7EHMEFXPVG5OIFNRRS6WF75HNAHWC54IMDZEP3P6JNS6GR](https://stellar.expert/explorer/testnet/contract/CASPRTNB2I7EHMEFXPVG5OIFNRRS6WF75HNAHWC54IMDZEP3P6JNS6GR)
 
-### Reputation Contract
+### Contract Deployment & Initialization Proof
 
-* Contract ID: `CDWJQYLPI6SBNGTUGAN4V3SA7GEE6LZIOMMU46CQPM4NHDTSGGU47HQO`
-* Stellar Expert Testnet Link: [CDWJQYLPI6SBNGTUGAN4V3SA7GEE6LZIOMMU46CQPM4NHDTSGGU47HQO](https://stellar.expert/explorer/testnet/contract/CDWJQYLPI6SBNGTUGAN4V3SA7GEE6LZIOMMU46CQPM4NHDTSGGU47HQO)
-
-### Transaction Verification
-
-* Transaction Hash: `be4425c1c8cd263d23495054c3105de3484b23b9c2a593b7948a8937928c2aee`
-* Stellar Expert Testnet Transaction Link: [be4425c1c8cd263d23495054c3105de3484b23b9c2a593b7948a8937928c2aee](https://stellar.expert/explorer/testnet/tx/be4425c1c8cd263d23495054c3105de3484b23b9c2a593b7948a8937928c2aee)
+* **Deployer Identity**: `stellarpay-deployer`
+* **Admin Address**: `GCQK2KUE6UAYMTVZ334WMTLDY3XP3JAQ24NE2I6W5WXXQFVZF4EAN5YP`
+* **Profile Creation Verification Tx**: [5fbec5d02961e2b4cd48e0414d01a68c2dc00aa8c6c6a5cdb307497f475ee4e5](https://stellar.expert/explorer/testnet/tx/5fbec5d02961e2b4cd48e0414d01a68c2dc00aa8c6c6a5cdb307497f475ee4e5)
 
 ---
 

@@ -5,6 +5,11 @@ import { nodePolyfills } from 'vite-plugin-node-polyfills'
 
 // https://vite.dev/config/
 export default defineConfig({
+  resolve: {
+    alias: {
+      'stellar-sdk': '@stellar/stellar-sdk',
+    },
+  },
   plugins: [
     react(),
     tailwindcss(),
