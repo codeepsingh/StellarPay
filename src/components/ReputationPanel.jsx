@@ -25,11 +25,11 @@ const ReputationPanel = ({ wallet }) => {
     try {
       // Check if registered on-chain
       try {
-        const { queryContractMethod, nativeToScVal } = await import('../services/stellarService');
+        const { queryContractMethod, nativeToScVal } = await import('../services/stellarService.js');
         const onChainProf = await queryContractMethod('get_profile', [nativeToScVal(address, { type: 'address' })]);
         setIsOnChainRegistered(!!onChainProf);
       } catch (e) {
-        console.warn('On-chain check failed:', e);
+        console.warn('On-chain check failed, falling back to local simulation:', e.message || e);
       }
 
       // Load user profile
@@ -50,7 +50,7 @@ const ReputationPanel = ({ wallet }) => {
   const handleRegisterOnChain = async () => {
     setRegistering(true);
     try {
-      const { invokeContractMethod, nativeToScVal } = await import('../services/stellarService');
+      const { invokeContractMethod, nativeToScVal } = await import('../services/stellarService.js');
       await invokeContractMethod(
         address,
         'create_profile',
