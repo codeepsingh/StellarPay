@@ -1,6 +1,6 @@
 # StellarPay
 
-![CI](https://github.com/aruu-27/StellarPay/actions/workflows/stellar-ci.yml/badge.svg)
+![CI](https://github.com/codeepsingh/StellarPay/actions/workflows/stellar-ci.yml/badge.svg)
 
 ### Decentralized Escrow Platform Built on Stellar & Soroban
 
@@ -209,7 +209,7 @@ tests/
 # Local Setup
 
 ```bash
-git clone https://github.com/aruu-27/StellarPay.git
+git clone https://github.com/codeepsingh/StellarPay.git
 
 cd StellarPay
 
@@ -220,7 +220,9 @@ npm run dev
 
 ---
 
-# Build
+# Build & Dependency Pinning
+
+To ensure reproducible builds in CI and prevent breaking changes from upstream crates (such as changes to `ed25519-dalek` v3.0.0 breaking `soroban-env-host`), we pin `ed25519-dalek` to `2.2.0` via a workspace patch section in `contracts/Cargo.toml` and track `Cargo.lock` in the repository.
 
 ```bash
 npm run build
