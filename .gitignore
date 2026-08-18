@@ -33,4 +33,5 @@ contracts/target/
 .env.local
 .env.*.local
 *.lock
-
+!Cargo.lock
+!package-lock.json
