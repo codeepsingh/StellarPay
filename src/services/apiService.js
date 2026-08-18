@@ -192,12 +192,12 @@ export const apiService = {
   },
 
   // Create/Fund Escrow
-  async createEscrow(creator, recipient, amount, txHash = '') {
+  async createEscrow(creator, recipient, amount, txHash = '', escrowId = null) {
     const escrows = db.get(STORAGE_KEYS.ESCROWS);
-    const escrowId = escrows.length + 1;
+    const id = escrowId || (escrows.length + 1);
 
     const newEscrow = {
-      escrowId,
+      escrowId: Number(id),
       creator,
       recipient,
       amount: parseFloat(amount).toFixed(4),
@@ -422,7 +422,40 @@ export const apiService = {
     const profiles = db.get(STORAGE_KEYS.PROFILES);
     let prof = profiles.find(p => p.walletAddress === address);
     
-    if (!prof) {
+    let onChainProfile = null;
+    try {
+      const { queryContractMethod, nativeToScVal, StrKey } = await import('./stellarService.js');
+      if (address && StrKey.isValidEd25519PublicKey(address)) {
+        onChainProfile = await queryContractMethod('get_profile', [nativeToScVal(address, { type: 'address' })]);
+      }
+    } catch (e) {
+      console.warn('Failed to fetch on-chain profile:', e);
+    }
+
+    if (onChainProfile) {
+      const completed = Number(onChainProfile.completed_contracts);
+      const failed = Number(onChainProfile.failed_contracts);
+      const total = completed + failed;
+      const successRate = total > 0 ? Math.round((completed / total) * 100) : 100;
+      
+      prof = {
+        walletAddress: onChainProfile.wallet,
+        reputationScore: Number(onChainProfile.reputation_score),
+        totalVolume: (Number(onChainProfile.total_volume) / 10000000).toFixed(2),
+        completedContracts: completed,
+        failedContracts: failed,
+        successRate,
+        rank: prof?.rank || (profiles.length + 1)
+      };
+      
+      const profIndex = profiles.findIndex(p => p.walletAddress === address);
+      if (profIndex !== -1) {
+        profiles[profIndex] = prof;
+      } else {
+        profiles.push(prof);
+      }
+      db.set(STORAGE_KEYS.PROFILES, profiles);
+    } else if (!prof) {
       // Lazy init default profile
       prof = {
         walletAddress: address,
