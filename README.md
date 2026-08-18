@@ -162,7 +162,7 @@ Transaction Completed
 
 ## CI/CD Pipeline
 
-<img width="1901" height="976" alt="image" src="https://github.com/user-attachments/assets/022fe6c8-78fa-4704-a509-a835c5cf03d4" />
+<img width="1896" height="973" alt="image" src="https://github.com/user-attachments/assets/2899f3ae-17bf-49e1-8887-d43dadb5b628" />
 
 ---
 
