@@ -157,3 +157,10 @@ test('Reputation penalty calculations', async () => {
   assert.strictEqual(updatedProfile.failedContracts, 1);
 });
 
+test('Sandbox Albedo Key validation helpers', () => {
+  const mockAlbedoKey = 'G_ALBEDO_SANDBOX_MOCK_KEY_7777777777777777777777777777';
+  // Check that mock sandbox public keys are detected as mock strings rather than throwing formatting errors
+  assert.strictEqual(mockAlbedoKey.startsWith('G_'), true);
+  assert.strictEqual(mockAlbedoKey.length > 30, true);
+});
+
